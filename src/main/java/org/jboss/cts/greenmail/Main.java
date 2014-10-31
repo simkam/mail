@@ -39,17 +39,22 @@ public class Main {
         final Set<ServerSetup> set = new HashSet<ServerSetup>();
         final GreenMail greenMail;
 
-        if (args.length > 0 && "imap".equals(args[0])) {
+        if (args.length > 0) {
+            int smtpPort = 8933;
 
-            int port = 8932;
-            // final int port = 143;  // standard imap
-            if (args.length > 1) {
-                port = Integer.parseInt(args[1]);
+            int imapPort = 8932;
+
+            if( args.length > 1 && "imap".equals(args[0])) {
+                imapPort = Integer.parseInt(args[1]);
             }
-
-            set.add(new ServerSetup(port, host, ServerSetup.PROTOCOL_IMAP));
-            System.out.println("imap will listen on port " + port);
-            greenMail = new GreenMail(set.toArray(new ServerSetup[1]));
+            if(args.length > 3 && "smtp".equals(args[2])) {
+                smtpPort = Integer.parseInt(args[3]);
+            }
+            set.add(new ServerSetup(imapPort, host, ServerSetup.PROTOCOL_IMAP));
+            set.add(new ServerSetup(smtpPort, host, ServerSetup.PROTOCOL_SMTP));
+            System.out.println("imap will listen on port " + imapPort);
+            System.out.println("smtp will listen on port " + smtpPort);
+            greenMail = new GreenMail(set.toArray(new ServerSetup[2]));
         } else {
             for (ServerSetup serverSetup : ServerSetup.ALL) {
                 System.out.println("protocol " + serverSetup.getProtocol() + ", port " + serverSetup.getPort());
