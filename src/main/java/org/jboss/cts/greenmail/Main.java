@@ -24,30 +24,28 @@ package org.jboss.cts.greenmail;
 import com.icegreen.greenmail.util.GreenMail;
 import com.icegreen.greenmail.util.ServerSetup;
 
-import java.util.HashSet;
-import java.util.Set;
-
 /**
- *
  * @author Eduardo Martins
  */
 public class Main {
 
     public static void main(String[] args) {
-        final String host = System.getProperty("mailHost","localhost");
-        final String user = System.getProperty("mailuser1","nobody");
-        final String password = System.getProperty("javamail.password","password");
-        final Set<ServerSetup> set = new HashSet<ServerSetup>();
-        for (ServerSetup serverSetup : ServerSetup.ALL) {
-           System.out.println("protocol " + serverSetup.getProtocol() + ", port "+ serverSetup.getPort());
-           set.add(new ServerSetup(serverSetup.getPort(), host,serverSetup.getProtocol()));
-       }
-//        final int port = 8932;
-//        final int port = 143;  // standard imap
-//        set.add(new ServerSetup( port, host,  ServerSetup.PROTOCOL_IMAP ));
-//        System.out.println("imap will listen on port " + port);
-//        final GreenMail greenMail = new GreenMail(set.toArray(new ServerSetup[1]));
-        final GreenMail greenMail = new GreenMail(set.toArray(new ServerSetup[ServerSetup.ALL.length]));
+        final String host = System.getProperty("mailHost", "localhost");
+        final String user = System.getProperty("mailuser1", "nobody");
+        final String password = System.getProperty("javamail.password", "password");
+        final int smptPort = Integer.getInteger("smtp.port", 25);
+        final int imapPort = Integer.getInteger("imap.port", 143);
+
+        ServerSetup[] setup = new ServerSetup[] {
+                new ServerSetup(imapPort, host, ServerSetup.PROTOCOL_IMAP),
+                new ServerSetup(smptPort, host, ServerSetup.PROTOCOL_SMTP)
+        };
+
+        for (ServerSetup serverSetup : setup) {
+            System.out.println("bind address " + host + ", protocol " + serverSetup.getProtocol() + ", port " + serverSetup.getPort());
+        }
+
+        final GreenMail greenMail = new GreenMail(setup);
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
             public void run() {
@@ -55,7 +53,8 @@ public class Main {
                 System.out.println("GreenMail stopped.");
             }
         });
-        greenMail.setUser(user+"@"+host,user,password);
+        System.out.println("user " + user);
+        greenMail.setUser(user + "@" + host, user, password);
         greenMail.start();
         System.out.println("GreenMail started.");
         while (true) {
